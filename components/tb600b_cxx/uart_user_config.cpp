@@ -4,8 +4,9 @@
 #include "esp_log.h"
 #include "hal/uart_types.h"
 #include "soc/clk_tree_defs.h"
+#include "uart_user_config.h"
 
-void init_uart(uart_port_t uart_num, int tx_pin, int rx_pin, int baud_rate, const char *tag) {
+void tb600b_init_uart(uart_port_t uart_num, int tx_pin, int rx_pin, int baud_rate, const char *tag) {
   const uart_config_t uart_config = {
       .baud_rate = baud_rate,
       .data_bits = UART_DATA_8_BITS,

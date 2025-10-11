@@ -1,6 +1,7 @@
 #ifndef TB600B_SO2_H
 #define TB600B_SO2_H
 
+#include <freertos/FreeRTOS.h>
 #include "driver/uart.h"
 #include "esp_log.h"
 #include "esp_log_buffer.h"

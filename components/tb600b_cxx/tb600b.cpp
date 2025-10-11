@@ -1,4 +1,4 @@
-#include "tb600b_so2.h"
+#include "tb600b.h"
 #include "hal/uart_types.h"
 
 static const char *TAG_UART_SENSOR = "[UART_SENSOR]"; // Tag for ESP_LOG

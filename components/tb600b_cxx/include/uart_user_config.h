@@ -19,6 +19,6 @@
 static const int RX_BUF_SIZE = 128;
 // static const char *TAG_UART_HEADER = "UART_INIT";
 
-void init_uart(uart_port_t uart_num, int tx_pin, int rx_pin, int baud_rate, const char *tag);
+void tb600b_init_uart(uart_port_t uart_num, int tx_pin, int rx_pin, int baud_rate, const char *tag);
 
 #endif // UART_USER_CONFIG_H
