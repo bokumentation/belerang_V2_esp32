@@ -1,67 +1,60 @@
-# ESP32C3 + TB600B S02
-### Used pin:
-- 20 RX
-- 21 TX
-- 9 RX
-- 10 TX
-
-### Powerline
-- 3.3v
-- GND
-
-
-How to use the library:
+### Create variables
+Example:
 ```cpp
+// Tag for the TB600B Sensor
+static const char *SO2_UART_TAG = "[SO2]";
+static const char *H2S_UART_TAG = "[H2S]";
+
+// Global variable to store value of SO2
 float g_so2_current_temperature = 0.0;
 float g_so2_current_humidity = 0.0;
 float g_so2_current_gas_ug = 0.0;
 
+// Global variable to store value H2S
 float g_h2s_current_temperature = 0.0;
 float g_h2s_current_humidity = 0.0;
 float g_h2s_current_gas_ug = 0.0;
+```
 
-// Cara panggil di main()
+### Call in the `app_main()` function.
+Pass the argument by using `reference` or `&your_Variable` to call the global function.
+```cpp
+extern "C" void app_main(void) {
+  tb600b_init_uart((uart_port_t)SO2_UART_PORT, SO2_UART_TX_PIN, SO2_UART_RX_PIN, UART_BAUD_RATE, SO2_UART_TAG);
+  tb600b_init_uart((uart_port_t)H2S_UART_PORT, H2S_UART_TX_PIN, H2S_UART_RX_PIN, UART_BAUD_RATE, H2S_UART_TAG);
 
-extern "C" void app_main(){
-    // Panggil fungsi
-    tb600b_get_combined_data(
-      SO2_UART_PORT, 
-      CMD_GET_COMBINED_DATA, 
-      sizeof(CMD_GET_COMBINED_DATA), 
-      SO2_UART_TAG,
-      &g_so2_current_temperature,
-      &g_so2_current_humidity,
-      &g_so2_current_gas_ug
-    );
+  vTaskDelay(pdMS_TO_TICKS(100));
 
-    printf()
+  while (1) {
+    tb600b_get_combined_data((uart_port_t)SO2_UART_PORT, CMD_GET_COMBINED_DATA, sizeof(CMD_GET_COMBINED_DATA), SO2_UART_TAG,
+                             &g_so2_current_temperature, &g_so2_current_humidity, &g_so2_current_gas_ug);
+    ESP_LOGI(SO2_UART_TAG, "Temperature: %.2f %%", g_so2_current_temperature);
+    ESP_LOGI(SO2_UART_TAG, "Humidity: %.2f %%", g_so2_current_humidity);
+    ESP_LOGI(SO2_UART_TAG, "Gas: %.2f %%", g_so2_current_gas_ug);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    tb600b_get_combined_data((uart_port_t)H2S_UART_PORT, CMD_GET_COMBINED_DATA, sizeof(CMD_GET_COMBINED_DATA), H2S_UART_TAG,
+                             &g_h2s_current_temperature, &g_h2s_current_humidity, &g_h2s_current_gas_ug);
+    ESP_LOGI(H2S_UART_TAG, "Temperature: %.2f %%", g_h2s_current_temperature);
+    ESP_LOGI(H2S_UART_TAG, "Humidity: %.2f %%", g_h2s_current_humidity);
+    ESP_LOGI(H2S_UART_TAG, "Gas: %.2f %%", g_h2s_current_gas_ug);
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
 }
 ```
 
+### 4. Build flash and Monitor
 
-
-
-### Defined PIN
+---
+ 
+### Pin Definition
+Pin definiton are in the `tb600b_cxx/uart_user_config.h`.
 ```cpp
-// UART0 for S02
-#define SO2_UART_PORT UART_NUM_0
-#define SO2_UART_RX_PIN 20
-#define SO2_UART_TX_PIN 21
+#define SO2_UART_PORT 1
+#define SO2_UART_RX_PIN 16
+#define SO2_UART_TX_PIN 17
 
-// UART1 for H2S
-#define H2S_UART_PORT UART_NUM_1
-#define H2S_UART_RX_PIN 9
-#define H2S_UART_TX_PIN 10
+#define H2S_UART_PORT 2
+#define H2S_UART_RX_PIN 26
+#define H2S_UART_TX_PIN 27
 ```
-
-### Toolchain
-- ESP-IDF-V5.5
-
-### ChangelogS:
-- 20250811
-    - Added new UART port for H2S and S02. Now can read 'stimulesly / bersamaan'.
-- 20250808
-    - Added get Sensor data. But some the variable still unused.
-- 20250807
-    - Added UART commands: Led Query, LED ON, LED OFF.
-
