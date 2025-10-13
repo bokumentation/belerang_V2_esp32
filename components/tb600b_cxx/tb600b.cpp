@@ -1,7 +1,32 @@
 #include "tb600b.h"
 #include "hal/uart_types.h"
+#include "driver/uart.h"
+#include "esp_err.h"
+#include "esp_log.h"
+#include "hal/uart_types.h"
+#include "soc/clk_tree_defs.h"
+#include "uart_user_config.h"
 
-static const char *TAG_UART_SENSOR = "[UART_SENSOR]"; // Tag for ESP_LOG
+static const char *TAG_UART_SENSOR = "TB600B_UART"; // Tag for ESP_LOG
+
+void tb600b_init_uart(uart_port_t uart_num, int tx_pin, int rx_pin, int baud_rate, const char *tag) {
+  const uart_config_t uart_config = {
+    .baud_rate = baud_rate,
+    .data_bits = UART_DATA_8_BITS,
+    .parity = UART_PARITY_DISABLE,
+    .stop_bits = UART_STOP_BITS_1,
+    .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    .source_clk = UART_SCLK_DEFAULT,
+  }; // Missing initializer but we need to ignore it. 
+
+  ESP_ERROR_CHECK(uart_driver_install(uart_num, RX_BUF_SIZE * 2, 0, 0, NULL, 0));
+  ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
+  ESP_ERROR_CHECK(uart_set_pin(uart_num, tx_pin, rx_pin, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+
+  ESP_LOGI(tag, "Initialize...");
+  vTaskDelay(pdMS_TO_TICKS(100));
+}
+
 
 void tb600b_get_combined_data(uart_port_t uart_num, const uint8_t *command, size_t commandSize, const char *tag,
                               float *out_temperature, float *out_humidity, float *out_gasUg) {

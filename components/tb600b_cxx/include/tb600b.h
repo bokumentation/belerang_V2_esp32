@@ -61,10 +61,10 @@ static const uint8_t CMDSET_MODE_PASSIVE_UPLOAD[] = {0xFF, 0x01, 0x78, 0x41, 0x0
 // Return: 9 bytes
 // static const uint8_t h2s_commandGetSensorInfo2[] = {0xFF, 0xD7, 0x1C, 0x00, 0xC8, 0x02, 0x01, 0x00, 0x3A};
 
-// 
+// SENSOR DATA COMMAND
+void tb600b_init_uart(uart_port_t uart_num, int tx_pin, int rx_pin, int baud_rate, const char *tag);
 void tb600b_read_confirmation();
 void tb600b_read_status_response();
-
 void tb600b_get_combined_data(uart_port_t uart_num, const uint8_t *command, size_t commandSize, const char *tag,
                               float *out_temperature, float *out_humidity, float *out_gasUg); 
 void tb600b_set_passive_mode(uart_port_t uart_num);

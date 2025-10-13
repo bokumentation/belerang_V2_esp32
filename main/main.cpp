@@ -1,12 +1,10 @@
 #include <freertos/FreeRTOS.h>
 #include <cstdio>
-#include <stdio.h>
 #include "esp_log.h"
 #include "freertos/task.h"
 
 // USER INCLUDE
 #include "hal/uart_types.h"
-#include "portmacro.h"
 #include "tb600b.h"
 #include "uart_user_config.h"
 
