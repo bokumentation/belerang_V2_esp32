@@ -1,4 +1,5 @@
 # Folder
+.cache
 .vscode
 bakcup/
 build/
