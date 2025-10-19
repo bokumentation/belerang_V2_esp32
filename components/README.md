@@ -7,6 +7,6 @@ idf_component_register(
     SRCS "main.cpp"
     REQUIRES cxx
     PRIV_REQUIRES my_components_cxx my_components
-    INCLUDE_DIRS "."
+    INCLUDE_DIRS "." 
 )
 ```

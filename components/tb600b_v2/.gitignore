@@ -1,0 +1,8 @@
+# Folder
+.vscode
+build/
+managed_components/
+bakcup/
+
+# File
+dependencies.lock

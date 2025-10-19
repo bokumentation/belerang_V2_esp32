@@ -1,46 +1,73 @@
-#include <freertos/FreeRTOS.h>
-#include <cstdio>
+/*
+    ESP32 GAS DETECTOR: SO2 (Belerang) + H2S + ANEMOMETER
+    Supported Target: ESP32, ESP32C3, ESP32S3
+
+    Last Revision: 251019
+    Using Microsoft's Style Guide
+
+    To do:
+    - Add arduino-esp32 as ESP-IDF Components. We need this for Heltec LORA library
+    - Add Global Variable and Pass the Reference. So can pass it in LORA.
+    - Implement MQTT Client (SPI -> W5500)
+    - Implement SPI SD CARD (SPI -> SD CARD Module)
+    - Implement Battery level indicator (Digital GPIO -> INA Sensor)
+    - Implement CAN BUS (SPI -> Logic Level Shifter + MCP2515 | TJA1050)
+    - Implement Serial Monitor for parsing data on WEB APP (UART 0)
+*/
+
+// System Include
 #include "esp_log.h"
-#include "freertos/task.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
-// USER INCLUDE
-#include "hal/uart_types.h"
-#include "tb600b.h"
-#include "uart_user_config.h"
+// User Include
+#include "anemometer.h"
+#include "board_pins.h"
+#include "data_format.h"
+#include "tb600b_v2.h"
 
-// Tag for the TB600B Sensor
-static const char *SO2_UART_TAG = "[SO2]";
-static const char *H2S_UART_TAG = "[H2S]";
+extern "C" void app_main(void)
+{
+    anemometer_handle_t *wind_sensor = anemometer_init(ANEMOMETER_ADC_PIN);
+    if (wind_sensor == nullptr)
+    {
+        ESP_LOGE("MAIN", "Anemometer Failed");
+        return;
+    }
 
-// Global variable to store value of SO2
-float g_so2_current_temperature = 0.0;
-float g_so2_current_humidity = 0.0;
-float g_so2_current_gas_ug = 0.0;
+    tb600b_handle_t *h2s_sensor =
+        tb600b_init(H2S_UART_PORT, H2S_TX_PIN, H2S_RX_PIN, BAUD_RATE, H2S_LOG_TAG, TB600B_SENSOR_TYPE_H2S);
 
-// Global variable to store value H2S
-float g_h2s_current_temperature = 0.0;
-float g_h2s_current_humidity = 0.0;
-float g_h2s_current_gas_ug = 0.0;
+    tb600b_handle_t *so2_sensor =
+        tb600b_init(SO2_UART_PORT, SO2_TX_PIN, SO2_RX_PIN, BAUD_RATE, SO2_LOG_TAG, TB600B_SENSOR_TYPE_SO2);
 
-extern "C" void app_main(void) {
-  tb600b_init_uart((uart_port_t)SO2_UART_PORT, SO2_UART_TX_PIN, SO2_UART_RX_PIN, UART_BAUD_RATE, SO2_UART_TAG);
-  tb600b_init_uart((uart_port_t)H2S_UART_PORT, H2S_UART_TX_PIN, H2S_UART_RX_PIN, UART_BAUD_RATE, H2S_UART_TAG);
+    if (h2s_sensor == nullptr || so2_sensor == nullptr)
+    {
+        ESP_LOGE("MAIN", "One or both sensors failed to initialize.");
+        return;
+    }
 
-  vTaskDelay(pdMS_TO_TICKS(1));
+    tb600b_set_passive_mode(h2s_sensor);
+    tb600b_set_passive_mode(so2_sensor);
 
-  while (1) {
-    tb600b_get_combined_data((uart_port_t)SO2_UART_PORT, CMD_GET_COMBINED_DATA, sizeof(CMD_GET_COMBINED_DATA), SO2_UART_TAG,
-                             &g_so2_current_temperature, &g_so2_current_humidity, &g_so2_current_gas_ug);
-    ESP_LOGI(SO2_UART_TAG, "Temperature: %.2f %%", g_so2_current_temperature);
-    ESP_LOGI(SO2_UART_TAG, "Humidity: %.2f %%", g_so2_current_humidity);
-    ESP_LOGI(SO2_UART_TAG, "Gas: %.2f %%", g_so2_current_gas_ug);
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(1000));
 
-    tb600b_get_combined_data((uart_port_t)H2S_UART_PORT, CMD_GET_COMBINED_DATA, sizeof(CMD_GET_COMBINED_DATA), H2S_UART_TAG,
-                             &g_h2s_current_temperature, &g_h2s_current_humidity, &g_h2s_current_gas_ug);
-    ESP_LOGI(H2S_UART_TAG, "Temperature: %.2f %%", g_h2s_current_temperature);
-    ESP_LOGI(H2S_UART_TAG, "Humidity: %.2f %%", g_h2s_current_humidity);
-    ESP_LOGI(H2S_UART_TAG, "Gas: %.2f %%", g_h2s_current_gas_ug);
-    vTaskDelay(pdMS_TO_TICKS(100));
-  }
+    while (1)
+    {
+        // 1. EXECUTE ALL MEASUREMENTS FIRST
+        anemometer_measure_and_update(wind_sensor); // Updates every 10s non-blocking
+        tb600b_measure_and_update(h2s_sensor);
+        vTaskDelay(pdMS_TO_TICKS(100)); // Small delay between UART reads
+        tb600b_measure_and_update(so2_sensor);
+
+        // 2. AGGREGATE AND PRINT ALL DATA ONCE
+        ESP_LOGI("MAIN", "--- Aggregating Cycle Data ---");
+
+        // This function gathers the latest data from all handles and prints ONE JSON line
+        print_all_data_json(wind_sensor, h2s_sensor, so2_sensor);
+
+        // 3. WAIT FOR THE NEXT MEASUREMENT CYCLE
+        // Total delay is now 500ms + 4500ms = 5 seconds between SO2 read and H2S read
+        vTaskDelay(pdMS_TO_TICKS(4500));
+    }
 }

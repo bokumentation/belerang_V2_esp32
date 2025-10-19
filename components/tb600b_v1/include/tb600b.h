@@ -1,11 +1,7 @@
 #ifndef TB600B_SO2_H
 #define TB600B_SO2_H
 
-#include <freertos/FreeRTOS.h>
-#include "driver/uart.h"
-#include "esp_log.h"
-#include "esp_log_buffer.h"
-#include "uart_user_config.h"
+#include "hal/uart_types.h"
 
 // static const char *TAG_START = "[START]";
 // static const char *TAG_TASK_TBxSO2 = "[TASK_TBxS02]";
@@ -66,7 +62,7 @@ void tb600b_init_uart(uart_port_t uart_num, int tx_pin, int rx_pin, int baud_rat
 void tb600b_read_confirmation();
 void tb600b_read_status_response();
 void tb600b_get_combined_data(uart_port_t uart_num, const uint8_t *command, size_t commandSize, const char *tag,
-                              float *out_temperature, float *out_humidity, float *out_gasUg); 
+                              float *out_temperature, float *out_humidity, float *out_gasUg);
 void tb600b_set_passive_mode(uart_port_t uart_num);
 
 // LED COMMAND
