@@ -10,8 +10,7 @@ tb600b_handle_t *tb600b_init(uart_port_t uart_num, int tx_pin, int rx_pin, int b
 {
     // 1. Allocate and Check Handle
     tb600b_handle_t *handle = new (std::nothrow) tb600b_handle_t;
-    if (handle == nullptr)
-    {
+    if (handle == nullptr) {
         ESP_LOGE(tag, "Failed to allocate memory for handle.");
         return nullptr;
     }
@@ -65,8 +64,7 @@ void tb600b_measure_and_update(tb600b_handle_t *handle)
     // Read response
     int bytesRead = uart_read_bytes(uart_num, responseData, responseLength, pdMS_TO_TICKS(1000));
 
-    if (bytesRead == responseLength)
-    {
+    if (bytesRead == responseLength) {
         // Parse and store results directly into the handle
         int16_t rawTemperature = (int16_t)((responseData[8] << 8) | responseData[9]);
         handle->temperature = (float)rawTemperature / 100.0f;
@@ -79,8 +77,7 @@ void tb600b_measure_and_update(tb600b_handle_t *handle)
 
         ESP_LOGI(tag, "Read OK. Gas: %.2f ug/m³", handle->gas_ug);
     }
-    else
-    {
+    else {
         ESP_LOGE(tag, "Failed to receive complete data response (read %d/%d bytes)", bytesRead, responseLength);
     }
     vTaskDelay(pdMS_TO_TICKS(100));
