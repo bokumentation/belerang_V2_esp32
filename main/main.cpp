@@ -1,20 +1,21 @@
 /*
     ESP32 GAS DETECTOR: SO2 (Belerang) + H2S + ANEMOMETER
     Supported Target: ESP32, ESP32C3, ESP32S3
-
-    Last Revision: 251019
-    Using Microsoft's Style Guide
-
-    Update:
-    - clang-format add new style
+    Last Revision: 251026
 
     To do:
-    - Add arduino-esp32 as ESP-IDF Components. We need this for Heltec LORA library
-    - Add Global Variable and Pass the Reference. So can pass it in LORA.
-    - Implement SPI SD CARD (SPI -> SD CARD Module)
-    - Implement Battery level indicator (I2C -> INA Sensor)
-    - Implement MQTT Client (SPI -> W5500)
-    - Implement Serial Monitor for parsing data on WEB APP (UART 0)
+    - Implement INA219 Battery level indicator (I2C)
+    - Implement RTC Clock DS3231 (I2C)
+    - Implement SPI MICRO SDCARD MODULE (SPI)
+    - Implement W5500 (SPI) for:
+        - MQTT Client
+        - Restful Server by using SPIFF partition (Opsional)
+    - Implement Serial Monitor for parsing data on USB DESKTOP APP (USB JTAG)
+
+    Check list:
+    - TB600C-H2S (UART) Done
+    - TB600B-SO2 (UART) Done
+    - ANEMOMETER (ADC)  Done
 */
 
 // System Include
@@ -26,20 +27,20 @@
 // User Include
 #include "anemometer.h"
 #include "board_pins.h"
-#include "data_format.h"
 #include "freertos/projdefs.h"
 #include "mcu_temp_handler.h"
-#include "portmacro.h"
 #include "tb600b_v2.h"
 
-float g_anemometer_kmp = 0;
-float g_h2s_temperature = 0;
-float g_h2s_humidity = 0;
-float g_h2s_gas_ug = 0;
+// #include "data_format.h"
+// #include "portmacro.h"
 
-float g_so2_temperature = 0;
-float g_so2_humidity = 0;
-float g_so2_gas_ug = 0;
+float g_anemometer_kmp = 0;  // Variabel for anemometer
+float g_h2s_gas_ug = 0;      // Variabel h2s gas
+float g_h2s_temperature = 0; // Variabel for h2s temp
+float g_h2s_humidity = 0;    // Variabel h2s humid
+float g_so2_gas_ug = 0;      // Variabel so2 gas
+float g_so2_temperature = 0; // Variabel so2 temp
+float g_so2_humidity = 0;    // Variabel so2 humid
 
 extern "C" void app_main(void)
 {
@@ -69,9 +70,6 @@ extern "C" void app_main(void)
 
     while (1) {
         // 1. EXECUTE ALL MEASUREMENTS FIRST
-        mcu_temp_read();
-        float mcu_temp = mcu_get_temperature();
-
         anemometer_measure_and_update(wind_sensor); // Updates every 10s non-blocking
         tb600b_measure_and_update(h2s_sensor);
         vTaskDelay(pdMS_TO_TICKS(100)); // Small delay between UART reads
@@ -89,21 +87,17 @@ extern "C" void app_main(void)
         g_so2_gas_ug = tb600b_get_gas_ug(so2_sensor);
 
         // 2. AGGREGATE AND PRINT ALL DATA ONCE
-        printf("MCU INFO: ");
-        printf(" mcu_temp: %.2f", mcu_temp);
-        printf(" |\n");
-
         printf("ANEMOMETER: ");
         printf(" wind_speed: %.2f", g_anemometer_kmp);
         printf(" |\n");
 
-        printf("TB600C-H2S: ");
+        printf("%s: ", H2S_LOG_TAG);
         printf(" temp: %.2f", g_h2s_temperature);
         printf(" | humid: %.2f", g_h2s_humidity);
         printf(" | h2s: %.2f", g_h2s_gas_ug);
         printf(" |\n");
 
-        printf("TB600B-SO2: ");
+        printf("%s: ", SO2_LOG_TAG);
         printf(" temp: %.2f", g_so2_temperature);
         printf(" | humid: %.2f", g_so2_humidity);
         printf(" | so2: %.2f", g_so2_gas_ug);

@@ -4,7 +4,7 @@ idf_component_register(
     SRCS "tb600b_v2.cpp"
     
     # Directory for public header files (must be 'include')
-    INCLUDE_DIRS "include"
+    INCLUDE_DIRS "." "include"
     
     # Dependencies: We use esp_log, which is part of the 'log' component.
     # We explicitly depend on it to be safe, although it's often included globally.

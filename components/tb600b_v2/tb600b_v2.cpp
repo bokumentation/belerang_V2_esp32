@@ -72,7 +72,6 @@ void tb600b_measure_and_update(tb600b_handle_t *handle)
 
         uint16_t rawHumidity = (uint16_t)((responseData[10] << 8) | responseData[11]);
         handle->humidity = (float)rawHumidity / 100.0f;
-
         uint16_t rawGasUg = (uint16_t)((responseData[2] << 8) | responseData[3]);
         handle->gas_ug = (float)rawGasUg;
 
@@ -123,7 +122,7 @@ void tb600b_set_passive_mode(tb600b_handle_t *handle)
     vTaskDelay(pdMS_TO_TICKS(100));
 }
 
-void set_led_turn_off(tb600b_handle_t *handle)
+void tb600b_set_led_turn_off(tb600b_handle_t *handle)
 {
     if (handle == nullptr || !handle->is_initialized)
         return;
@@ -132,6 +131,23 @@ void set_led_turn_off(tb600b_handle_t *handle)
     const char *tag = handle->tag;
 
     ESP_LOGI(tag, "SEND_CMD: turn off lcd%d.", uart_num);
+
+    // Send the passive mode command
+    uart_write_bytes(uart_num, CMD_TURN_OFF_LED, sizeof(CMD_TURN_OFF_LED));
+
+    // Give the sensor a moment to process the command
+    vTaskDelay(pdMS_TO_TICKS(100));
+}
+
+void tb600b_set_led_turn_on(tb600b_handle_t *handle)
+{
+    if (handle == nullptr || !handle->is_initialized)
+        return;
+
+    uart_port_t uart_num = handle->uart_num;
+    const char *tag = handle->tag;
+
+    ESP_LOGI(tag, "SEND_CMD: turn on lcd%d.", uart_num);
 
     // Send the passive mode command
     uart_write_bytes(uart_num, CMD_TURN_OFF_LED, sizeof(CMD_TURN_OFF_LED));

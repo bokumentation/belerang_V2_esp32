@@ -46,7 +46,7 @@ extern "C"
     static const uint8_t CMD_GET_COMBINED_DATA[] = {0xFF, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78};
 
     // ✅ Command to CHECK LED status. Return: 0 or 1
-    static const uint8_t CMD_GET_LED_STATUS[] = {0xFF, 0x01, 0x8A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x75};
+    // static const uint8_t CMD_GET_LED_STATUS[] = {0xFF, 0x01, 0x8A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x75};
 
     // ✅ Command to turn OFF LED. Return: OK
     static const uint8_t CMD_TURN_OFF_LED[] = {0xFF, 0x01, 0x88, 0x00, 0x00, 0x00, 0x00, 0x00, 0x77};
@@ -58,10 +58,10 @@ extern "C"
     static const uint8_t CMDSET_MODE_PASSIVE_UPLOAD[] = {0xFF, 0x01, 0x78, 0x41, 0x00, 0x00, 0x00, 0x00, 0x46};
 
     /* --- ⚠️⚠️ UNUSED COMMANDS ⚠️⚠️ ---- */
-    static const uint8_t CMDSET_MODE_ACTIVE_UPLOAD[] = {0xFF, 0x01, 0x78, 0x40, 0x00, 0x00, 0x00, 0x00, 0x47};
-    static const uint8_t CMD_GET_SENSOR_INFO[] = {0xFF, 0x01, 0xD1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x35};
-    static const uint8_t CMD_GET_SENSOR_INFO_2[] = {0xFF, 0xD7, 0x24, 0x00, 0xC8, 0x02, 0x01, 0x00, 0x3A};
-    static const uint8_t CMD_GET_VERSION[] = {0xFF, 0x01, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    // static const uint8_t CMDSET_MODE_ACTIVE_UPLOAD[] = {0xFF, 0x01, 0x78, 0x40, 0x00, 0x00, 0x00, 0x00, 0x47};
+    // static const uint8_t CMD_GET_SENSOR_INFO[] = {0xFF, 0x01, 0xD1, 0x00, 0x00, 0x00, 0x00, 0x00, 0x35};
+    // static const uint8_t CMD_GET_SENSOR_INFO_2[] = {0xFF, 0xD7, 0x24, 0x00, 0xC8, 0x02, 0x01, 0x00, 0x3A};
+    // static const uint8_t CMD_GET_VERSION[] = {0xFF, 0x01, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     /* --- COMMAND: ACTIVE UPLOAD MODE --- */
     // ✅ Command 5: ACTIVE read gas concentration: [1]=0x01 [2]=0x86
@@ -82,12 +82,12 @@ extern "C"
     // void tb600b_set_passive_mode(uart_port_t uart_num);
 
     // LED COMMAND
-    void led_read_confirmation(uart_port_t uart_num);
-    void led_read_status_response(uart_port_t uart_num);
-    void led_get_led_status(uart_port_t uart_num);
-    void set_led_turn_off(tb600b_handle_t *handle);
-    void led_turn_on_led(uart_port_t uart_num);
-    void led_set_passive_mode(uart_port_t uart_num);
+    void tb600b_set_led_turn_off(tb600b_handle_t *handle);
+    void tb600b_set_led_turn_on(tb600b_handle_t *handle);
+    // void led_read_confirmation(uart_port_t uart_num);
+    // void led_read_status_response(uart_port_t uart_num);
+    // void led_get_led_status(uart_port_t uart_num);
+    // void led_set_passive_mode(uart_port_t uart_num);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,9 @@
 # How to use this library
+
+Feature:
+- read sensor value such as humid, temp, gas concentration
+- turn off and on tb's built in led
+
 ### 1. Include this library
 Edit your `main/cmakelists.txt`.
 
@@ -25,8 +30,7 @@ Example:
 #include "portmacro.h"
 #include "tb600b_v2.h"
 
-extern "C" void app_main(void)
-{
+extern "C" void app_main(void) {
     tb600b_handle_t *h2s_sensor =
         tb600b_init(H2S_UART_PORT, H2S_TX_PIN, H2S_RX_PIN, BAUD_RATE, H2S_LOG_TAG, TB600B_SENSOR_TYPE_H2S);
 
@@ -44,13 +48,10 @@ extern "C" void app_main(void)
     vTaskDelay(pdMS_TO_TICKS(1000));
 
     while (1) {
-        // 1. EXECUTE ALL MEASUREMENTS FIRST
-        anemometer_measure_and_update(wind_sensor); // Updates every 10s non-blocking
         tb600b_measure_and_update(h2s_sensor);
-        vTaskDelay(pdMS_TO_TICKS(100)); // Small delay between UART reads
+        vTaskDelay(pdMS_TO_TICKS(100)); 
         tb600b_measure_and_update(so2_sensor);
 
-        // Store the data
         float g_h2s_temperature = tb600b_get_temperature(h2s_sensor);
         float g_h2s_humidity = tb600b_get_humidity(h2s_sensor);
         float g_h2s_gas_ug = tb600b_get_gas_ug(h2s_sensor);
@@ -59,7 +60,6 @@ extern "C" void app_main(void)
         float g_so2_humidity = tb600b_get_humidity(so2_sensor);
         float g_so2_gas_ug = tb600b_get_gas_ug(so2_sensor);
 
-        // 2. AGGREGATE AND PRINT ALL DATA ONCE
         printf("TB600C-H2S: ");
         printf(" temp: %.2f", g_h2s_temperature);
         printf(" | humid: %.2f", g_h2s_humidity);

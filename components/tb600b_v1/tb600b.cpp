@@ -33,8 +33,7 @@ void tb600b_get_combined_data(uart_port_t uart_num, const uint8_t *command, size
     const int responseLength = 13;
     uint8_t responseData[responseLength];
 
-    if (!out_temperature || !out_humidity || !out_gasUg)
-    {
+    if (!out_temperature || !out_humidity || !out_gasUg) {
         ESP_LOGE(tag, "One or more output pointers were NULL. Data cannot be stored.");
         return;
     }
@@ -45,13 +44,11 @@ void tb600b_get_combined_data(uart_port_t uart_num, const uint8_t *command, size
     // Read RESPONSE from the sensor.
     int bytesRead = uart_read_bytes(uart_num, responseData, responseLength, pdMS_TO_TICKS(1000));
 
-    if (bytesRead == responseLength)
-    {
+    if (bytesRead == responseLength) {
         // ESP_LOGI(tag, "Received Combined Data Response:");
         ESP_LOG_BUFFER_HEXDUMP(tag, responseData, responseLength, ESP_LOG_INFO);
 
-        if (responseData[0] == 0xFF && responseData[1] == 0x87)
-        {
+        if (responseData[0] == 0xFF && responseData[1] == 0x87) {
             // Parse temperature from bytes 8 and 9
             int16_t rawTemperature = (int16_t)((responseData[8] << 8) | responseData[9]);
             float temperature = (float)rawTemperature / 100.0;
@@ -69,13 +66,11 @@ void tb600b_get_combined_data(uart_port_t uart_num, const uint8_t *command, size
             *out_humidity = humidity;
             *out_gasUg = gasUg;
         }
-        else
-        {
+        else {
             ESP_LOGW(tag, "Received malformed response header.");
         }
     }
-    else
-    {
+    else {
         ESP_LOGE(tag, "Failed to receive complete combined data response within timeout.");
     }
 
@@ -89,20 +84,16 @@ void led_read_confirmation(uart_port_t uart_num)
     uint8_t responseData[responseLength];
     int bytesRead = uart_read_bytes(uart_num, responseData, responseLength, pdMS_TO_TICKS(1000));
 
-    if (bytesRead == responseLength)
-    {
-        if (responseData[0] == 0x4F && responseData[1] == 0x4B)
-        {
+    if (bytesRead == responseLength) {
+        if (responseData[0] == 0x4F && responseData[1] == 0x4B) {
             ESP_LOGI(TAG_UART_SENSOR, "Received: 'OK' confirmation.");
         }
-        else
-        {
+        else {
             ESP_LOGW(TAG_UART_SENSOR, "Received unexpected response for confirmation.");
             ESP_LOG_BUFFER_HEXDUMP(TAG_UART_SENSOR, responseData, bytesRead, ESP_LOG_INFO);
         }
     }
-    else
-    {
+    else {
         ESP_LOGE(TAG_UART_SENSOR, "Failed to receive 'OK' confirmation within timeout.");
     }
 }
@@ -113,26 +104,21 @@ void led_read_status_response(uart_port_t uart_num)
     uint8_t responseData[responseLength];
     int bytesRead = uart_read_bytes(uart_num, responseData, responseLength, pdMS_TO_TICKS(1000));
 
-    if (bytesRead == responseLength)
-    {
+    if (bytesRead == responseLength) {
         ESP_LOGI(TAG_UART_SENSOR, "Received Status Response:");
         ESP_LOG_BUFFER_HEXDUMP(TAG_UART_SENSOR, responseData, responseLength, ESP_LOG_INFO);
 
-        if (responseData[2] == 0x01)
-        {
+        if (responseData[2] == 0x01) {
             ESP_LOGI(TAG_UART_SENSOR, "Light Status: ON (0x01)");
         }
-        else if (responseData[2] == 0x00)
-        {
+        else if (responseData[2] == 0x00) {
             ESP_LOGI(TAG_UART_SENSOR, "Light Status: OFF (0x00)");
         }
-        else
-        {
+        else {
             ESP_LOGW(TAG_UART_SENSOR, "Light Status: Unknown");
         }
     }
-    else
-    {
+    else {
         ESP_LOGE(TAG_UART_SENSOR, "Failed to receive status response within timeout.");
     }
 }
@@ -167,4 +153,3 @@ void led_set_passive_mode(uart_port_t uart_num)
     uart_write_bytes(uart_num, CMDSET_MODE_PASSIVE_UPLOAD, sizeof(CMDSET_MODE_PASSIVE_UPLOAD));
     vTaskDelay(pdMS_TO_TICKS(100));
 }
-
