@@ -28,11 +28,23 @@
 #include "board_pins.h"
 #include "data_format.h"
 #include "freertos/projdefs.h"
+#include "mcu_temp_handler.h"
 #include "portmacro.h"
 #include "tb600b_v2.h"
 
+float g_anemometer_kmp = 0;
+float g_h2s_temperature = 0;
+float g_h2s_humidity = 0;
+float g_h2s_gas_ug = 0;
+
+float g_so2_temperature = 0;
+float g_so2_humidity = 0;
+float g_so2_gas_ug = 0;
+
 extern "C" void app_main(void)
 {
+    mcu_temp_init();
+    vTaskDelay(pdMS_TO_TICKS(1000));
     anemometer_handle_t *wind_sensor = anemometer_init(ANEMOMETER_ADC_PIN);
     if (wind_sensor == nullptr) {
         ESP_LOGE("MAIN", "Anemometer Failed");
@@ -57,21 +69,34 @@ extern "C" void app_main(void)
 
     while (1) {
         // 1. EXECUTE ALL MEASUREMENTS FIRST
+        mcu_temp_read();
+        float mcu_temp = mcu_get_temperature();
+
         anemometer_measure_and_update(wind_sensor); // Updates every 10s non-blocking
         tb600b_measure_and_update(h2s_sensor);
         vTaskDelay(pdMS_TO_TICKS(100)); // Small delay between UART reads
         tb600b_measure_and_update(so2_sensor);
 
         // Store the data
-        float g_h2s_temperature = tb600b_get_temperature(h2s_sensor);
-        float g_h2s_humidity = tb600b_get_humidity(h2s_sensor);
-        float g_h2s_gas_ug = tb600b_get_gas_ug(h2s_sensor);
+        g_anemometer_kmp = anemometer_get_speed_kmph(wind_sensor);
 
-        float g_so2_temperature = tb600b_get_temperature(so2_sensor);
-        float g_so2_humidity = tb600b_get_humidity(so2_sensor);
-        float g_so2_gas_ug = tb600b_get_gas_ug(so2_sensor);
+        g_h2s_temperature = tb600b_get_temperature(h2s_sensor);
+        g_h2s_humidity = tb600b_get_humidity(h2s_sensor);
+        g_h2s_gas_ug = tb600b_get_gas_ug(h2s_sensor);
+
+        g_so2_temperature = tb600b_get_temperature(so2_sensor);
+        g_so2_humidity = tb600b_get_humidity(so2_sensor);
+        g_so2_gas_ug = tb600b_get_gas_ug(so2_sensor);
 
         // 2. AGGREGATE AND PRINT ALL DATA ONCE
+        printf("MCU INFO: ");
+        printf(" mcu_temp: %.2f", mcu_temp);
+        printf(" |\n");
+
+        printf("ANEMOMETER: ");
+        printf(" wind_speed: %.2f", g_anemometer_kmp);
+        printf(" |\n");
+
         printf("TB600C-H2S: ");
         printf(" temp: %.2f", g_h2s_temperature);
         printf(" | humid: %.2f", g_h2s_humidity);
@@ -85,13 +110,6 @@ extern "C" void app_main(void)
         printf(" |\n");
 
         ESP_LOGI("MAIN", "--- Aggregating Cycle Data ---");
-        // This function gathers the latest data from all handles and prints ONE
-        // JSON line
-        // print_all_data_json(wind_sensor, h2s_sensor, so2_sensor);
-
-        // 3. WAIT FOR THE NEXT MEASUREMENT CYCLE
-        // Total delay is now 500ms + 4500ms = 5 seconds between SO2 read and H2S
-        // read
-        vTaskDelay(pdMS_TO_TICKS(4500));
+        vTaskDelay(pdMS_TO_TICKS(3000)); // Delay 3 seconds
     }
 }
