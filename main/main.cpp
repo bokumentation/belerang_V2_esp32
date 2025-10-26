@@ -5,7 +5,7 @@
     Last Revision: 251019
     Using Microsoft's Style Guide
 
-    Update: 
+    Update:
     - clang-format add new style
 
     To do:
@@ -19,6 +19,7 @@
 
 // System Include
 #include "esp_log.h"
+#include <cstdio>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -26,6 +27,8 @@
 #include "anemometer.h"
 #include "board_pins.h"
 #include "data_format.h"
+#include "freertos/projdefs.h"
+#include "portmacro.h"
 #include "tb600b_v2.h"
 
 extern "C" void app_main(void)
@@ -59,12 +62,32 @@ extern "C" void app_main(void)
         vTaskDelay(pdMS_TO_TICKS(100)); // Small delay between UART reads
         tb600b_measure_and_update(so2_sensor);
 
-        // 2. AGGREGATE AND PRINT ALL DATA ONCE
-        ESP_LOGI("MAIN", "--- Aggregating Cycle Data ---");
+        // Store the data
+        float g_h2s_temperature = tb600b_get_temperature(h2s_sensor);
+        float g_h2s_humidity = tb600b_get_humidity(h2s_sensor);
+        float g_h2s_gas_ug = tb600b_get_gas_ug(h2s_sensor);
 
+        float g_so2_temperature = tb600b_get_temperature(so2_sensor);
+        float g_so2_humidity = tb600b_get_humidity(so2_sensor);
+        float g_so2_gas_ug = tb600b_get_gas_ug(so2_sensor);
+
+        // 2. AGGREGATE AND PRINT ALL DATA ONCE
+        printf("TB600C-H2S: ");
+        printf(" temp: %.2f", g_h2s_temperature);
+        printf(" | humid: %.2f", g_h2s_humidity);
+        printf(" | h2s: %.2f", g_h2s_gas_ug);
+        printf(" |\n");
+
+        printf("TB600B-SO2: ");
+        printf(" temp: %.2f", g_so2_temperature);
+        printf(" | humid: %.2f", g_so2_humidity);
+        printf(" | so2: %.2f", g_so2_gas_ug);
+        printf(" |\n");
+
+        ESP_LOGI("MAIN", "--- Aggregating Cycle Data ---");
         // This function gathers the latest data from all handles and prints ONE
         // JSON line
-        print_all_data_json(wind_sensor, h2s_sensor, so2_sensor);
+        // print_all_data_json(wind_sensor, h2s_sensor, so2_sensor);
 
         // 3. WAIT FOR THE NEXT MEASUREMENT CYCLE
         // Total delay is now 500ms + 4500ms = 5 seconds between SO2 read and H2S

@@ -1,6 +1,7 @@
 #include "tb600b_v2.h"
 #include "esp_log.h"
 #include "new"
+#include <sys/_intsup.h>
 
 static const int RX_BUF_SIZE = 128;
 
@@ -94,14 +95,14 @@ float tb600b_get_temperature(tb600b_handle_t *handle)
 {
     if (handle == nullptr)
         return 0.0f;
-    return handle->gas_ug;
+    return handle->temperature;
 }
 
 float tb600b_get_humidity(tb600b_handle_t *handle)
 {
     if (handle == nullptr)
         return 0.0f;
-    return handle->gas_ug;
+    return handle->humidity;
 }
 
 // The definition of tb600b_set_passive_mode
@@ -117,6 +118,23 @@ void tb600b_set_passive_mode(tb600b_handle_t *handle)
 
     // Send the passive mode command
     uart_write_bytes(uart_num, CMDSET_MODE_PASSIVE_UPLOAD, sizeof(CMDSET_MODE_PASSIVE_UPLOAD));
+
+    // Give the sensor a moment to process the command
+    vTaskDelay(pdMS_TO_TICKS(100));
+}
+
+void set_led_turn_off(tb600b_handle_t *handle)
+{
+    if (handle == nullptr || !handle->is_initialized)
+        return;
+
+    uart_port_t uart_num = handle->uart_num;
+    const char *tag = handle->tag;
+
+    ESP_LOGI(tag, "SEND_CMD: turn off lcd%d.", uart_num);
+
+    // Send the passive mode command
+    uart_write_bytes(uart_num, CMD_TURN_OFF_LED, sizeof(CMD_TURN_OFF_LED));
 
     // Give the sensor a moment to process the command
     vTaskDelay(pdMS_TO_TICKS(100));

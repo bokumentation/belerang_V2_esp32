@@ -85,7 +85,7 @@ extern "C"
     void led_read_confirmation(uart_port_t uart_num);
     void led_read_status_response(uart_port_t uart_num);
     void led_get_led_status(uart_port_t uart_num);
-    void led_turn_off_led(uart_port_t uart_num);
+    void set_led_turn_off(tb600b_handle_t *handle);
     void led_turn_on_led(uart_port_t uart_num);
     void led_set_passive_mode(uart_port_t uart_num);
 

@@ -4,7 +4,7 @@
 #include "sdkconfig.h"
 #include "hal/gpio_hal.h"
 
-#define BOARD_DEVKITC_ESP32S3_V1
+// #define BOARD_DEVKITC_ESP32S3_V1
 // #define BOARD_HELTEC_WSL_ESP32S3_V3
 
 #ifdef CONFIG_IDF_TARGET_ESP32
@@ -38,14 +38,14 @@
     #if defined(BOARD_DEVKITC_ESP32S3_V1)
         #define ANEMOMETER_ADC_PIN GPIO_NUM_3
 
-        #define H2S_UART_PORT UART_NUM_1
-        #define H2S_RX_PIN GPIO_NUM_17
-        #define H2S_TX_PIN GPIO_NUM_18
+        #define H2S_UART_PORT UART_NUM_0
+        #define H2S_RX_PIN GPIO_NUM_9
+        #define H2S_TX_PIN GPIO_NUM_10
         #define H2S_LOG_TAG "TB600B_H2S"
 
-        #define SO2_UART_PORT UART_NUM_0
-        #define SO2_RX_PIN GPIO_NUM_44
-        #define SO2_TX_PIN GPIO_NUM_43
+        #define SO2_UART_PORT UART_NUM_1
+        #define SO2_RX_PIN GPIO_NUM_20
+        #define SO2_TX_PIN GPIO_NUM_21
         #define SO2_LOG_TAG "TB600B_SO2"
 
     // Not Tested
